@@ -172,8 +172,17 @@ export function h<P>(
 
 // Actual implementation
 export function h(type: any, propsOrChildren?: any, children?: any): VNode {
+  /* 只有参数的length 大于2 才会处理，为1的时候不调用 返回为void；
+  等于2的时候回判断第二个参数是children 还是props，大于3的时候将前三个参数作为createVNode的参数；
+  在传参时会判断将要传递给createVNode的参数类型是否是VNode，如果是，则需要作children = [children]的处理 
+  之所以会使用数组，是因为如果第三个参数只有是数组类型，才会作为子标签渲染。
+  */
+
+  // console.group('h 函数')
   const l = arguments.length
   if (l === 2) {
+    // console.log('参数为2,', type)
+    // console.groupEnd()
     if (isObject(propsOrChildren) && !isArray(propsOrChildren)) {
       // single vnode without props
       if (isVNode(propsOrChildren)) {
@@ -189,8 +198,13 @@ export function h(type: any, propsOrChildren?: any, children?: any): VNode {
     if (l > 3) {
       children = Array.prototype.slice.call(arguments, 2)
     } else if (l === 3 && isVNode(children)) {
+      console.log(children)
       children = [children]
     }
+    // if (l === 1) {
+    //   console.log('参数为1,', type)
+    // }
+    // console.groupEnd()
     return createVNode(type, propsOrChildren, children)
   }
 }

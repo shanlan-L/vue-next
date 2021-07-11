@@ -279,6 +279,7 @@ export function createBlock(
 }
 
 export function isVNode(value: any): value is VNode {
+  // 判断value 是否为true 并通过判断value 的__v_isVNode标识，判断value是否为VNode；
   return value ? value.__v_isVNode === true : false
 }
 
