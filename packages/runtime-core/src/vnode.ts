@@ -353,8 +353,9 @@ function _createVNode(
     }
     type = Comment
   }
-
+  console.log(type)
   if (isVNode(type)) {
+    // 判断参数是否是VNode
     // createVNode receiving an existing vnode. This happens in cases like
     // <component :is="vnode"/>
     // #2078 make sure to merge refs during the clone instead of overwriting it
@@ -420,8 +421,9 @@ function _createVNode(
     )
   }
 
+  // 创建vnode
   const vnode: VNode = {
-    __v_isVNode: true,
+    __v_isVNode: true, // isVNode函数判断标识
     __v_skip: true,
     type,
     props,
