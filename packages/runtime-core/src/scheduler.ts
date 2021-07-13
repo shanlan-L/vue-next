@@ -43,6 +43,7 @@ export function nextTick(
   this: ComponentPublicInstance | void,
   fn?: () => void
 ): Promise<void> {
+  //  使用promise.resolve()实现nextTick
   const p = currentFlushPromise || resolvedPromise
   return fn ? p.then(this ? fn.bind(this) : fn) : p
 }

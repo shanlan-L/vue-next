@@ -353,7 +353,6 @@ function _createVNode(
     }
     type = Comment
   }
-  console.log(type)
   if (isVNode(type)) {
     // 判断参数是否是VNode
     // createVNode receiving an existing vnode. This happens in cases like
