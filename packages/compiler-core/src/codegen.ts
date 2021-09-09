@@ -30,6 +30,8 @@ import { SourceMapGenerator, RawSourceMap } from 'source-map'
 import {
   advancePositionWithMutation,
   assert,
+  getVNodeBlockHelper,
+  getVNodeHelper,
   isSimpleIdentifier,
   toValidAssetId
 } from './utils'
@@ -47,7 +49,7 @@ import {
   POP_SCOPE_ID,
   WITH_SCOPE_ID,
   WITH_DIRECTIVES,
-  CREATE_BLOCK,
+  CREATE_ELEMENT_VNODE,
   OPEN_BLOCK,
   CREATE_STATIC,
   WITH_CTX,
@@ -68,10 +70,7 @@ export interface CodegenResult {
 }
 
 export interface CodegenContext
-  extends Omit<
-      Required<CodegenOptions>,
-      'bindingMetadata' | 'inline' | 'isTS'
-    > {
+  extends Omit<Required<CodegenOptions>, 'bindingMetadata' | 'inline'> {
   source: string
   code: string
   line: number
@@ -98,7 +97,9 @@ function createCodegenContext(
     optimizeImports = false,
     runtimeGlobalName = `Vue`,
     runtimeModuleName = `vue`,
-    ssr = false
+    ssr = false,
+    isTS = false,
+    inSSR = false
   }: CodegenOptions
 ): CodegenContext {
   const context: CodegenContext = {
@@ -111,6 +112,8 @@ function createCodegenContext(
     runtimeGlobalName,
     runtimeModuleName,
     ssr,
+    isTS,
+    inSSR,
     source: ast.loc.source,
     code: ``,
     column: 1,
@@ -219,7 +222,6 @@ export function generate(
   } else {
     genFunctionPreamble(ast, preambleContext)
   }
-
   // enter render function
   const functionName = ssr ? `ssrRender` : `render`
   const args = ssr ? ['_ctx', '_push', '_parent', '_attrs'] : ['_ctx', '_cache']
@@ -356,6 +358,7 @@ function genFunctionPreamble(ast: RootNode, context: CodegenContext) {
       if (ast.hoists.length) {
         const staticHelpers = [
           CREATE_VNODE,
+          CREATE_ELEMENT_VNODE,
           CREATE_COMMENT,
           CREATE_TEXT,
           CREATE_STATIC
@@ -466,7 +469,7 @@ function genModulePreamble(
 function genAssets(
   assets: string[],
   type: 'component' | 'directive' | 'filter',
-  { helper, push, newline }: CodegenContext
+  { helper, push, newline, isTS }: CodegenContext
 ) {
   const resolver = helper(
     __COMPAT__ && type === 'filter'
@@ -485,7 +488,7 @@ function genAssets(
     push(
       `const ${toValidAssetId(id, type)} = ${resolver}(${JSON.stringify(id)}${
         maybeSelfReference ? `, true` : ``
-      })`
+      })${isTS ? `!` : ``}`
     )
     if (i < assets.length - 1) {
       newline()
@@ -648,11 +651,11 @@ function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
     case NodeTypes.JS_CACHE_EXPRESSION:
       genCacheExpression(node, context)
       break
+    case NodeTypes.JS_BLOCK_STATEMENT:
+      genNodeList(node.body, context, true, false)
+      break
 
     // SSR only types
-    case NodeTypes.JS_BLOCK_STATEMENT:
-      !__BROWSER__ && genNodeList(node.body, context, true, false)
-      break
     case NodeTypes.JS_TEMPLATE_LITERAL:
       !__BROWSER__ && genTemplateLiteral(node, context)
       break
@@ -755,7 +758,8 @@ function genVNodeCall(node: VNodeCall, context: CodegenContext) {
     dynamicProps,
     directives,
     isBlock,
-    disableTracking
+    disableTracking,
+    isComponent
   } = node
   if (directives) {
     push(helper(WITH_DIRECTIVES) + `(`)
@@ -766,7 +770,10 @@ function genVNodeCall(node: VNodeCall, context: CodegenContext) {
   if (pure) {
     push(PURE_ANNOTATION)
   }
-  push(helper(isBlock ? CREATE_BLOCK : CREATE_VNODE) + `(`, node)
+  const callHelper: symbol = isBlock
+    ? getVNodeBlockHelper(context.inSSR, isComponent)
+    : getVNodeHelper(context.inSSR, isComponent)
+  push(helper(callHelper) + `(`, node)
   genNodeList(
     genNullableArgs([tag, props, children, patchFlag, dynamicProps]),
     context
@@ -833,7 +840,7 @@ function genObjectExpression(node: ObjectExpression, context: CodegenContext) {
 }
 
 function genArrayExpression(node: ArrayExpression, context: CodegenContext) {
-  genNodeListAsArray(node.elements, context)
+  genNodeListAsArray(node.elements as CodegenNode[], context)
 }
 
 function genFunctionExpression(
