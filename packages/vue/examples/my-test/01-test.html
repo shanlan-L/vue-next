@@ -16,10 +16,22 @@
 </script><script src="../../dist/vue.global.js"></script>
 <!-- app -->
 <script lang="jsx">
-  const h = Vue.h
+  const {h, ref, watch} = Vue;
   Vue.createApp({
     setup() {
-      return () => h('div', {style:'width: 100px; height:100px; background-color: red'})
+      const numA = ref(1);
+      const addNumA = () => {numA.value += 1; console.log(numA.value)}
+
+      watch(numA, () => {
+        console.log(`numA:${numA.value}`)
+      }, {flush: 'post'})
+
+      return () => h('div', 
+        {
+          style:'width: 100px; height:100px; background-color: red',
+          onClick:  addNumA
+        },
+        '点击一下')
     }
   }).mount('#app')
 </script>

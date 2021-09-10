@@ -146,6 +146,7 @@ export function watch<T = any, Immediate extends Readonly<boolean> = false>(
   return doWatch(source as any, cb, options)
 }
 
+//  watch 和 watchEffct 是对doWatch作了装饰
 function doWatch(
   source: WatchSource | WatchSource[] | WatchEffect | object,
   cb: WatchCallback | null,
@@ -203,10 +204,12 @@ function doWatch(
       })
   } else if (isFunction(source)) {
     if (cb) {
+      // watch 调用，有回调函数
       // getter with cb
       getter = () =>
         callWithErrorHandling(source, instance, ErrorCodes.WATCH_GETTER)
     } else {
+      // watchEffect 调用，无回调函数
       // no cb -> simple effect
       getter = () => {
         if (instance && instance.isUnmounted) {
@@ -224,6 +227,7 @@ function doWatch(
       }
     }
   } else {
+    // 不是ref、reactive、数组或者函数的时候，警告
     getter = NOOP
     __DEV__ && warnInvalidSource(source)
   }
@@ -272,7 +276,7 @@ function doWatch(
     return NOOP
   }
 
-  let oldValue = isMultiSource ? [] : INITIAL_WATCHER_VALUE
+  let oldValue = isMultiSource ? [] : INITIAL_WATCHER_VALUE // source是数组的情况下，有多个观察源
   const job: SchedulerJob = () => {
     if (!effect.active) {
       return
@@ -333,7 +337,7 @@ function doWatch(
   }
 
   const scope = instance && instance.scope
-  const effect = new ReactiveEffect(getter, scheduler, scope)
+  const effect = new ReactiveEffect(getter, scheduler, scope) // 处理过之后的getter通过effct进行处理
 
   if (__DEV__) {
     effect.onTrack = onTrack
