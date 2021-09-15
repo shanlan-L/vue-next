@@ -189,6 +189,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (!isTracking()) {
     return
   }
+  // 判断是否已经在weakMap中收集了依赖，没有则收集
   let depsMap = targetMap.get(target)
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()))
@@ -249,6 +250,7 @@ export function trigger(
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
   const depsMap = targetMap.get(target)
+  // 没有走过get，没有track（） 直接return
   if (!depsMap) {
     // never been tracked
     return
@@ -258,7 +260,7 @@ export function trigger(
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared
     // trigger all effects for target
-    deps = [...depsMap.values()]
+    deps = [...depsMap.values()] // 获取所有的依赖
   } else if (key === 'length' && isArray(target)) {
     depsMap.forEach((dep, key) => {
       if (key === 'length' || key >= (newValue as number)) {
@@ -331,6 +333,7 @@ export function triggerEffects(
   dep: Dep | ReactiveEffect[],
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
 ) {
+  debugger
   // spread into array for stabilization
   for (const effect of isArray(dep) ? dep : [...dep]) {
     if (effect !== activeEffect || effect.allowRecurse) {

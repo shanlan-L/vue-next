@@ -122,7 +122,8 @@ function createGetter(isReadonly = false, shallow = false) {
     }
 
     if (isRef(res)) {
-      // ref unwrapping - does not apply for Array + integer key.
+      // ref unwrapping - does not apply for Array + integer key.\
+      // 是ref并且targe不是Array，直接返回res.value
       const shouldUnwrap = !targetIsArray || !isIntegerKey(key)
       return shouldUnwrap ? res.value : res
     }
@@ -168,8 +169,10 @@ function createSetter(shallow = false) {
     // don't trigger if target is something up in the prototype chain of original
     if (target === toRaw(receiver)) {
       if (!hadKey) {
+        console.log('新增key时', target, TriggerOpTypes.ADD, key, value)
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
+        console.log('修改已有key时', target, TriggerOpTypes.ADD, key, value)
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }
