@@ -16,11 +16,14 @@
 </script><script src="../../dist/vue.global.js"></script>
 <!-- app -->
 <script lang="jsx">
-  const {h, ref, watch} = Vue;
+  const {h, ref, watch, reactive} = Vue;
   Vue.createApp({
     setup() {
       const numA = ref(1);
       const addNumA = () => {numA.value += 1; console.log(numA.value)}
+
+      const objA = reactive({a: 1});
+      console.log(objA.a)
 
       watch(numA, () => {
         console.log(`numA:${numA.value}`)

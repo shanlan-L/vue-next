@@ -104,10 +104,12 @@ class RefImpl<T> {
   public readonly __v_isRef = true
 
   constructor(private _rawValue: T, public readonly _shallow: boolean) {
+    // shallow 判断是否是浅观察
     this._value = _shallow ? _rawValue : convert(_rawValue)
   }
 
   get value() {
+    // 依赖收集
     trackRefValue(this)
     return this._value
   }
@@ -116,6 +118,7 @@ class RefImpl<T> {
     if (hasChanged(toRaw(newVal), this._rawValue)) {
       this._rawValue = newVal
       this._value = this._shallow ? newVal : convert(newVal)
+      // 触发依赖
       triggerRefValue(this, newVal)
     }
   }

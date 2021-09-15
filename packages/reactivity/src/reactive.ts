@@ -178,6 +178,7 @@ function createReactiveObject(
   proxyMap: WeakMap<Target, any>
 ) {
   if (!isObject(target)) {
+    // 开发环境警告，生产环境返回对象
     if (__DEV__) {
       console.warn(`value cannot be made reactive: ${String(target)}`)
     }
@@ -185,6 +186,7 @@ function createReactiveObject(
   }
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
+  // 目标是否已经是proxy
   if (
     target[ReactiveFlags.RAW] &&
     !(isReadonly && target[ReactiveFlags.IS_REACTIVE])
@@ -192,6 +194,7 @@ function createReactiveObject(
     return target
   }
   // target already has corresponding Proxy
+  // 目标是否已经在proxyMap
   const existingProxy = proxyMap.get(target)
   if (existingProxy) {
     return existingProxy
@@ -203,6 +206,7 @@ function createReactiveObject(
   }
   const proxy = new Proxy(
     target,
+    // collectionHandlers 针对set、map、weakSet、weakMap的handlers, baseHandlers 针对基本类型的handlers
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
   )
   proxyMap.set(target, proxy)

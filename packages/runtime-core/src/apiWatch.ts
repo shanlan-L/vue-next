@@ -181,6 +181,7 @@ function doWatch(
   let forceTrigger = false
   let isMultiSource = false
 
+  // 判断source类型
   if (isRef(source)) {
     getter = () => source.value
     forceTrigger = !!source._shallow

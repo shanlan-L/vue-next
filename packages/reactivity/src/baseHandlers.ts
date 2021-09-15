@@ -96,6 +96,7 @@ function createGetter(isReadonly = false, shallow = false) {
             ? shallowReactiveMap
             : reactiveMap
         ).get(target)
+      // 判断reactiveMap 是否有receiver 的缓存
     ) {
       return target
     }
