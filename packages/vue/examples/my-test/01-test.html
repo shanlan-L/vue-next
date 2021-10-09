@@ -16,17 +16,22 @@
 </script><script src="../../dist/vue.global.js"></script>
 <!-- app -->
 <script lang="jsx">
-  const {h, ref, watch, reactive} = Vue;
+  const {h, ref, watch, reactive, computed} = Vue;
   Vue.createApp({
     setup() {
       const numA = ref(1);
-      const addNumA = () => {numA.value += 1; console.log(numA.value)}
+      const addNumA = () => {
+        numA.value += 1;
+      }
 
       const objA = reactive({a: 1});
 
+      const numB = computed(() => {
+        return numA.value + 2
+      })
+
       watch(numA, () => {
         objA.a +=1
-        console.log(`numA:${numA.value}`)
       }, {flush: 'post'})
 
       return () => h('div', 
@@ -34,7 +39,7 @@
           style:'width: 100px; height:100px; background-color: red',
           onClick:  addNumA
         },
-        ['点击一下',h('div', null, objA.a)])
+        ['点击一下',h('div', null, numB)])
     }
   }).mount('#app')
 </script>

@@ -169,10 +169,10 @@ function createSetter(shallow = false) {
     // don't trigger if target is something up in the prototype chain of original
     if (target === toRaw(receiver)) {
       if (!hadKey) {
-        console.log('新增key时', target, TriggerOpTypes.ADD, key, value)
+        // console.log('新增key时', target, TriggerOpTypes.ADD, key, value)， 不需要oldValue
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
-        console.log('修改已有key时', target, TriggerOpTypes.ADD, key, value)
+        // console.log('修改已有key时', target, TriggerOpTypes.ADD, key, value)
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }

@@ -3,6 +3,7 @@ import { Ref, trackRefValue, triggerRefValue } from './ref'
 import { isFunction, NOOP } from '@vue/shared'
 import { ReactiveFlags, toRaw } from './reactive'
 import { Dep } from './dep'
+import { effect } from 'test-dts'
 
 export interface ComputedRef<T = any> extends WritableComputedRef<T> {
   readonly value: T
@@ -48,6 +49,7 @@ class ComputedRefImpl<T> {
     let compareTarget: any
     let hasCompareTarget = false
     let scheduled = false
+    // 设置当前副作用函数
     this.effect = new ReactiveEffect(getter, (computedTrigger?: boolean) => {
       if (scheduler && this.dep) {
         if (computedTrigger) {
@@ -91,12 +93,14 @@ class ComputedRefImpl<T> {
   }
 
   get value() {
+    //  收集依赖
     trackRefValue(this)
     // the computed ref may get wrapped by other proxies e.g. readonly() #3376
     return toRaw(this)._get()
   }
 
   set value(newValue: T) {
+    // 通过传入的setter修改数据
     this._setter(newValue)
   }
 }
@@ -116,6 +120,7 @@ export function computed<T>(
   let getter: ComputedGetter<T>
   let setter: ComputedSetter<T>
 
+  // 判断第一个参数是函数或者是对象，设置 getter 和 setter
   if (isFunction(getterOrOptions)) {
     getter = getterOrOptions
     setter = __DEV__
@@ -128,10 +133,11 @@ export function computed<T>(
     setter = getterOrOptions.set
   }
 
+  // 将 getter 和 setter 初始化
   const cRef = new ComputedRefImpl(
     getter,
     setter,
-    isFunction(getterOrOptions) || !getterOrOptions.set
+    isFunction(getterOrOptions) || !getterOrOptions.set // 第一个参数为函数 或则没有set 则为true， 只读模式
   )
 
   if (__DEV__ && debugOptions) {
